@@ -12,10 +12,11 @@ def describe_participation(df, id_col='subject_id', time_col='visit_month', show
     - df: pandas.DataFrame in long format
     - id_col: column name for subject ID
     - time_col: column name for time variable
-    - show_plot: whether to display a heatmap of participation
+    - show_plot: whether to display a heatmap of participation, a histogram for the number of measurements per individual, a barplot for the number of subjects per timepoint
 
     Returns:
-    - summary: dict with basic stats
+    - (Optional) Heatmap, Histogram and BarPlot for participation through time
+    - two tables, one for summary statistics and one for timepoint distribution
     """
     visits_per_subject = df.groupby(id_col)[time_col].nunique()
     subjects_per_time = df.groupby(time_col)[id_col].nunique()
@@ -60,7 +61,7 @@ def describe_participation(df, id_col='subject_id', time_col='visit_month', show
         plt.tight_layout()
         plt.show()
 
-        summary_df = pd.DataFrame({
+    summary_df = pd.DataFrame({
         "Metric": [
             "Total Subjects",
             "Total Time Points",
