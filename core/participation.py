@@ -154,5 +154,3 @@ def analyze_time_deviation(df, id_col='subject_id', nominal_col='nominal_time', 
 
     print("\n📊 Deviation by Nominal Time Point:")
     display(per_nominal.style.hide(axis="index"))
-
-    return df[[id_col, nominal_col, actual_col, "deviation"]], global_stats_df, per_nominal
