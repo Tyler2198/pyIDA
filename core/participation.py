@@ -90,3 +90,69 @@ def describe_participation(df, id_col='subject_id', time_col='visit_month', show
 
     print("\n📊 Number of Subjects per Time Point:")
     display(timepoint_df.style.hide(axis="index"))
+
+
+
+def analyze_time_deviation(df, id_col='subject_id', nominal_col='nominal_time', actual_col='actual_time', show_plot=True):
+    """
+    Analyze and visualize deviations between nominal and actual timepoints.
+
+    Parameters:
+    - df: pandas.DataFrame
+    - id_col: column name for subject ID
+    - nominal_col: column name for nominal visit time
+    - actual_col: column name for actual visit time
+    - show_plot: whether to generate plots
+
+    Returns:
+    - deviation_df: DataFrame with deviation and summary stats
+    """
+    df = df.copy()
+    df["deviation"] = df[actual_col] - df[nominal_col]
+
+    # Global stats
+    global_stats = {
+        "mean_deviation": round(df["deviation"].mean(), 2),
+        "std_deviation": round(df["deviation"].std(), 2),
+        "min_deviation": round(df["deviation"].min(), 2),
+        "max_deviation": round(df["deviation"].max(), 2)
+    }
+
+    # Deviation by nominal timepoint
+    per_nominal = df.groupby(nominal_col)["deviation"].agg(['mean', 'std', 'min', 'max']).round(2).reset_index()
+
+    if show_plot:
+        plt.figure(figsize=(10, 5))
+        sns.histplot(df["deviation"], bins=30, kde=True, color='salmon')
+        plt.title("Distribution of Visit Time Deviations")
+        plt.xlabel("Deviation (Actual - Nominal Time)")
+        plt.ylabel("Frequency")
+        plt.grid(True, linestyle='--', alpha=0.6)
+        plt.tight_layout()
+        plt.show()
+
+        plt.figure(figsize=(10, 5))
+        sns.boxplot(x=nominal_col, y="deviation", data=df, palette="Set3")
+        plt.title("Deviation Distribution by Nominal Time Point")
+        plt.xlabel("Nominal Time Point")
+        plt.ylabel("Deviation (months)")
+        plt.grid(True, linestyle='--', alpha=0.6)
+        plt.tight_layout()
+        plt.show()
+
+    # Convert global_stats dict to a clean DataFrame
+    global_stats_df = pd.DataFrame({
+        "Metric": list(global_stats.keys()),
+        "Value": [f"{v:.2f}" for v in global_stats.values()]
+    })
+
+    # Clean and rename per-nominal table
+    per_nominal.columns = ["Nominal Time", "Mean Deviation", "Std Deviation", "Min Deviation", "Max Deviation"]
+
+    print("\n📊 Global Deviation Summary:")
+    display(global_stats_df.style.hide(axis="index"))
+
+    print("\n📊 Deviation by Nominal Time Point:")
+    display(per_nominal.style.hide(axis="index"))
+
+    return df[[id_col, nominal_col, actual_col, "deviation"]], global_stats_df, per_nominal
