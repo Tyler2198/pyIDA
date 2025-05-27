@@ -154,3 +154,43 @@ def analyze_time_deviation(df, id_col='subject_id', nominal_col='nominal_time', 
 
     print("\n📊 Deviation by Nominal Time Point:")
     display(per_nominal.style.hide(axis="index"))
+
+
+
+def summarize_by_structure(df, id_col, structural_vars, outcome_vars=None, show_plot=True):
+    """
+    Summarizes outcomes stratified by structural variables.
+
+    Parameters:
+    - df: pandas.DataFrame
+    - id_col: ID column for subjects
+    - structural_vars: list of variables to group by (e.g., ['sex', 'center'])
+    - outcome_vars: list of outcome variables to summarize (e.g., ['BMI', 'grip_strength'])
+    - show_plot: show boxplots if True
+
+    Returns:
+    - summary_tables: dictionary of summary tables per structural variable
+    """
+    if outcome_vars is None:
+        outcome_vars = df.select_dtypes(include=[np.number]).columns.difference([id_col] + structural_vars).tolist()
+
+    summary_tables = {}
+
+    for var in structural_vars:
+        grouped = df.groupby(var)[outcome_vars].agg(['mean', 'std', 'min', 'max']).round(2)
+        grouped.columns = ['_'.join(col).strip() for col in grouped.columns.values]
+        summary_tables[var] = grouped.reset_index()
+
+        print(f"\n📊 Summary by {var}:\n")
+        display(summary_tables[var].style.hide(axis="index"))
+
+        if show_plot:
+            for outcome in outcome_vars:
+                plt.figure(figsize=(8, 5))
+                sns.boxplot(data=df, x=var, y=outcome, palette="pastel")
+                plt.title(f"{outcome} by {var}")
+                plt.grid(True, linestyle='--', alpha=0.6)
+                plt.tight_layout()
+                plt.show()
+
+    return summary_tables
