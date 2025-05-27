@@ -68,3 +68,33 @@ deviation_df, global_stats_df, per_nominal_df = analyze_time_deviation(
     show_plot=True  # plots + tables shown
 )
 ```
+
+### ✅ 3. `summarize_by_structure()`
+
+Summarizes key outcome variables (e.g., BMI, grip strength) stratified by one or more **structural variables** such as `sex`, `center`, or `age_group`.
+
+- **Inputs**: Long-format DataFrame with:
+  - `subject_id`: unique ID per individual
+  - One or more structural variables (e.g., `sex`, `center`)
+  - One or more numeric outcome variables (e.g., `BMI`, `grip_strength`)
+- **Outputs**:
+  - Clean summary tables (mean, std, min, max) for each group
+  - Boxplots of outcomes stratified by group
+  - Summary statistics for each structural variable listed separately
+
+> 🧼 Tables are displayed beautifully with hidden index.  
+> 🔍 Automatically handles multiple grouping and outcome variables.
+
+#### Example Usage
+
+```python
+from core.structural_vars import summarize_by_structure
+
+summary_tables = summarize_by_structure(
+    df,
+    id_col='subject_id',
+    structural_vars=['sex', 'center'],
+    outcome_vars=['grip_strength', 'BMI'],
+    show_plot=True  # plots + tables shown
+)
+```
