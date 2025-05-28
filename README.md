@@ -98,3 +98,36 @@ summary_tables = summarize_by_structure(
     show_plot=True  # plots + tables shown
 )
 ```
+
+### ✅ 4. `summarize_missingness()`
+
+Analyzes missing values across variables and time points in longitudinal data.
+
+- **Inputs**: Long-format DataFrame with:
+  - `subject_id`: unique ID per individual
+  - `time_point`: time or wave index
+  - A list of variables to check for missingness
+
+- **Outputs**:
+  - Missing value heatmap (Subjects × Time)
+  - Missing value proportion table per variable
+  - Clean summary tables of variable-wise and time-wise missingness
+  - (Optional) count of variables missing per subject
+
+> 🔍 Visualizes dropout or sparse patterns over time.  
+> 📊 Uses seaborn and matplotlib for clean visuals.  
+> 🧼 Clean DataFrames with no index shown in outputs.
+
+#### Example Usage
+
+```python
+from core.missingness import summarize_missingness
+
+summary_tables = summarize_missingness(
+    df,
+    id_col='subject_id',
+    time_col='visit_month',
+    variables=['grip_strength', 'BMI', 'weight'],
+    show_plot=True  # plots + tables shown
+)
+```
