@@ -194,3 +194,61 @@ def summarize_by_structure(df, id_col, structural_vars, outcome_vars=None, show_
                 plt.show()
 
     return summary_tables
+
+
+def analyze_missingness(df, id_col='subject_id', time_col='visit_month', show_plot=True):
+    """
+    Analyze and visualize missingness in a longitudinal dataset.
+
+    Parameters:
+    - df: pandas.DataFrame in long format
+    - id_col: column name for subject ID
+    - time_col: column name for time variable
+    - show_plot: whether to show heatmaps and bar plots
+
+    Returns:
+    - missing_by_var: DataFrame with % missing per variable
+    - missing_by_time: DataFrame with % missing per variable per time
+    - missing_by_subject: DataFrame with % missing per subject
+    """
+    df = df.copy()
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    tracked_vars = [col for col in numeric_cols if col not in [time_col]]
+
+    missing_by_var = df[tracked_vars].isnull().mean().round(3) * 100
+    missing_by_var = missing_by_var.reset_index().rename(columns={"index": "Variable", 0: "% Missing"})
+
+    missing_by_time = df.groupby(time_col)[tracked_vars].apply(lambda x: x.isnull().mean()).round(3) * 100
+    missing_by_time = missing_by_time.reset_index().rename(columns={time_col: "Time Point"})
+
+    missing_by_subject = df.groupby(id_col)[tracked_vars].apply(lambda x: x.isnull().mean()).round(3) * 100
+    missing_by_subject = missing_by_subject.reset_index().rename(columns={id_col: "Subject"})
+
+    if show_plot:
+        plt.figure(figsize=(8, 5))
+        sns.barplot(x="Variable", y="% Missing", data=missing_by_var, palette="viridis")
+        plt.title("Missingness by Variable")
+        plt.ylabel("% Missing")
+        plt.grid(True, linestyle='--', alpha=0.6)
+        plt.tight_layout()
+        plt.show()
+
+        for var in tracked_vars:
+            plt.figure(figsize=(8, 5))
+            sns.lineplot(data=missing_by_time, x="Time Point", y=var, marker="o")
+            plt.title(f"Missingness Over Time – {var}")
+            plt.ylabel("% Missing")
+            plt.grid(True, linestyle='--', alpha=0.6)
+            plt.tight_layout()
+            plt.show()
+
+        heatmap_data = df.pivot_table(index=id_col, columns=time_col, values=tracked_vars[0])
+        plt.figure(figsize=(12, 6))
+        sns.heatmap(heatmap_data.isnull(), cmap="Reds", cbar=False, yticklabels=False)
+        plt.title(f"Missingness Heatmap – {tracked_vars[0]} across Subjects × Time")
+        plt.xlabel("Time Point")
+        plt.ylabel("Subjects")
+        plt.tight_layout()
+        plt.show()
+
+    return missing_by_var, missing_by_time, missing_by_subject
